@@ -2,6 +2,8 @@ package cz.uhk.umte.myapplication;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -10,6 +12,10 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -22,6 +28,10 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final String TAG = "MapActivity";
@@ -31,9 +41,14 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
     private static final float DEFAULT_ZOOM = 15f;
 
+    //widgets
+    private EditText mSearchText;
+
+    //vars
     private Boolean mLocationPermissionsGranted = false;
     private GoogleMap mMap;
     private FusedLocationProviderClient mFusedLocationProviderCLient;
+    private int maxResults = 3;
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -41,8 +56,27 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         Log.d(TAG, "onMapReady: map is ready");
         mMap = googleMap;
 
-        if(mLocationPermissionsGranted) {
+        if (mLocationPermissionsGranted) {
             getDeviceLocation();
+
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
+                    PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                            this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                            != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
+            }
+            Toast.makeText(this, "Setting location", Toast.LENGTH_SHORT).show();
+            mMap.setMyLocationEnabled(true);
+            //mMap.getUiSettings().setMyLocationButtonEnabled(false);
+
+            init();
 
         }
     }
@@ -51,8 +85,50 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
+        mSearchText = (EditText) findViewById(R.id.input_search);
 
         getLocationPermissions();
+
+
+    }
+
+    private void init() {
+        Log.d(TAG, "init: initializing");
+        mSearchText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if(actionId == EditorInfo.IME_ACTION_SEARCH
+                        || actionId == EditorInfo.IME_ACTION_DONE
+                        || keyEvent.getAction() == KeyEvent.ACTION_DOWN
+                        || keyEvent.getAction() == KeyEvent.KEYCODE_ENTER) {
+                    //execute method for searching
+                    geoLocate();
+                }
+                return false;
+            }
+        });
+       geoLocate();
+    }
+
+    private void geoLocate() {
+        Log.d(TAG, "geoLocate: geolocating");
+
+        String searchString = mSearchText.getText().toString();
+
+        Geocoder geocoder = new Geocoder(MapActivity.this);
+        List<Address> list = new ArrayList<>();
+        try {
+            list = geocoder.getFromLocationName(searchString, maxResults);
+        }catch (IOException e) {
+            Log.d(TAG, "geoLocate: IOExeption" + e.getMessage());
+        }
+        if(list.size() > 0){
+            for (int i=0; i <= maxResults; ++i ){
+                Address address = list.get(i);
+                Log.d(TAG, "geoLocate: found a location " + address.toString());
+                //Toast.makeText(this, address.toString(), Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void initMap() {
