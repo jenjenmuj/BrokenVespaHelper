@@ -38,7 +38,7 @@ import java.util.List;
 
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleApiClient.OnConnectionFailedListener {
-
+    //spatny nazev commitu...
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
