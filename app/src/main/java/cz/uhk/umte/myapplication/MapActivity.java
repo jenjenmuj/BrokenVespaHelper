@@ -74,7 +74,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
             Toast.makeText(this, "Setting location", Toast.LENGTH_SHORT).show();
             mMap.setMyLocationEnabled(true);
-            //mMap.getUiSettings().setMyLocationButtonEnabled(false);
+            mMap.getUiSettings().setMyLocationButtonEnabled(false);
 
             init();
 
@@ -99,8 +99,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if(actionId == EditorInfo.IME_ACTION_SEARCH
                         || actionId == EditorInfo.IME_ACTION_DONE
-                        || keyEvent.getAction() == KeyEvent.ACTION_DOWN
-                        || keyEvent.getAction() == KeyEvent.KEYCODE_ENTER) {
+                        || event.getAction() == KeyEvent.ACTION_DOWN
+                        || event.getAction() == KeyEvent.KEYCODE_ENTER) {
                     //execute method for searching
                     geoLocate();
                 }
@@ -123,11 +123,14 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             Log.d(TAG, "geoLocate: IOExeption" + e.getMessage());
         }
         if(list.size() > 0){
-            for (int i=0; i <= maxResults; ++i ){
+           /* for (int i=0; i <= maxResults; ++i ){
                 Address address = list.get(i);
                 Log.d(TAG, "geoLocate: found a location " + address.toString());
                 //Toast.makeText(this, address.toString(), Toast.LENGTH_SHORT).show();
-            }
+            }*/
+            Address address = list.get(0);
+            Log.d(TAG, "geoLocate: found a location " + address.toString());
+            Toast.makeText(this, address.toString(), Toast.LENGTH_LONG).show();
         }
     }
 
